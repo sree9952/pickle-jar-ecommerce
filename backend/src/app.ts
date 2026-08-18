@@ -14,7 +14,20 @@ const app: Application = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [env.CLIENT_URL, 'http://localhost:4200'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow localhost, vercel.app domains, or custom client URL
+      if (
+        origin.includes('localhost') ||
+        origin.endsWith('.vercel.app') ||
+        origin === env.CLIENT_URL ||
+        env.CLIENT_URL === '*'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
