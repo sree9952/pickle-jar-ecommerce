@@ -1,6 +1,6 @@
 // Pickle & Jar E-Commerce - Prisma Schema
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
