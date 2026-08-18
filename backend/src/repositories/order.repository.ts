@@ -1,5 +1,5 @@
 import prisma from '../config/database';
-import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export class OrderRepository {
   async createOrder(data: Prisma.OrderCreateInput) {
@@ -40,7 +40,7 @@ export class OrderRepository {
     });
   }
 
-  async updateOrderStatus(id: string, status: OrderStatus, paymentStatus?: PaymentStatus) {
+  async updateOrderStatus(id: string, status: string, paymentStatus?: string) {
     return prisma.order.update({
       where: { id },
       data: {
