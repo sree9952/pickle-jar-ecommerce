@@ -1,0 +1,40 @@
+// SCSS Design Tokens & Color Palette
+$primary-amber: #D97706;      // Warm Mustard Gold / Mango Avakaya
+$primary-dark: #B45309;       // Deep Roasted Spice
+$secondary-terracotta: #C85A32; // Traditional Ceramic Clay
+$accent-emerald: #15803D;     // Fresh Curry Leaf / Eco Green
+$surface-dark: #121417;       // Deep Slate Dark Mode
+$card-glass: rgba(255, 255, 255, 0.7);
+$card-glass-dark: rgba(255, 255, 255, 0.05);
+
+:root {
+  --primary: #D97706;
+  --primary-hover: #B45309;
+  --secondary: #C85A32;
+  --accent: #15803D;
+  --bg-gradient: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  --bg-color: #FAFAFA;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(217, 119, 6, 0.15);
+  --text-main: #1F2937;
+  --text-muted: #6B7280;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(217, 119, 6, 0.12);
+  --shadow-hover: 0 12px 32px rgba(217, 119, 6, 0.22);
+  --glass-backdrop: blur(12px);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+[data-theme="dark"] {
+  --bg-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  --bg-color: #0F172A;
+  --card-bg: rgba(30, 41, 59, 0.85);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 32px rgba(217, 119, 6, 0.35);
+}

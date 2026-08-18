@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # 1. MySQL 8 Database Container
+  mysql_db:
+    image: mysql:8.0
+    container_name: pickle_mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pickle_jar_db
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # 2. Node.js Express Backend API Container
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pickle_backend_api
+    restart: always
+    ports:
+      - '5000:5000'
+    environment:
+      PORT: 5000
+      NODE_ENV: development
+      DATABASE_URL: "mysql://root:rootpassword@mysql_db:3306/pickle_jar_db"
+      JWT_SECRET: "super_secret_jwt_key_pickle_jar_2026"
+      JWT_EXPIRES_IN: "7d"
+      RAZORPAY_KEY_ID: "rzp_test_dummy_key"
+      RAZORPAY_KEY_SECRET: "dummy_secret"
+      CLIENT_URL: "http://localhost:4200"
+    depends_on:
+      - mysql_db
+
+volumes:
+  mysql_data:

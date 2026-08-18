@@ -1,0 +1,252 @@
+// Pickle & Jar E-Commerce - Prisma Schema
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AdminUser {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  role         String         @default("ADMIN")
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  inventoryLogs InventoryLog[]
+
+  @@map("admin_users")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  products    Product[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  categoryId    String
+  name          String
+  slug          String   @unique
+  description   String
+  ingredients   String?
+  weightGram    Int
+  price         Float
+  comparePrice  Float?
+  stockQuantity Int      @default(0)
+  isFeatured    Boolean  @default(false)
+  isBestSeller  Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  orderItems    OrderItem[]
+  inventoryLogs InventoryLog[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isFeatured, isActive])
+  @@index([isBestSeller, isActive])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  imageUrl  String
+  publicId  String?  // Cloudinary Public ID
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+
+  @@index([phone])
+  @@map("customers")
+}
+
+model Address {
+  id           String   @id @default(uuid())
+  customerId   String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  pincode      String
+  landmark     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orders       Order[]
+
+  @@index([customerId])
+  @@index([pincode])
+  @@map("addresses")
+}
+
+model Coupon {
+  id                String       @id @default(uuid())
+  code              String       @unique
+  description       String?
+  discountType      String       @default("PERCENTAGE") // PERCENTAGE | FIXED
+  discountValue     Float
+  minOrderAmount    Float        @default(0.0)
+  maxDiscountAmount Float?
+  usageLimit        Int?
+  usageCount        Int          @default(0)
+  expiresAt         DateTime?
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
+
+  orders            Order[]
+
+  @@index([code])
+  @@map("coupons")
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique
+  customerId        String
+  addressId         String
+  couponId          String?
+  subtotal          Float
+  discountAmount    Float         @default(0.0)
+  shippingFee       Float         @default(0.0)
+  totalAmount       Float
+  status            String        @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  paymentStatus     String        @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  trackingNumber    String?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  address           Address       @relation(fields: [addressId], references: [id])
+  coupon            Coupon?       @relation(fields: [couponId], references: [id])
+  items             OrderItem[]
+  payments          Payment[]
+
+  @@index([orderNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String   @id @default(uuid())
+  orderId      String
+  productId    String
+  productName  String
+  productPrice Float
+  weightGram   Int
+  quantity     Int
+  totalAmount  Float
+  createdAt    DateTime @default(now())
+
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  razorpayPaymentId String        @unique
+  razorpayOrderId   String
+  razorpaySignature String
+  amount            Float
+  currency          String        @default("INR")
+  status            String        @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  paymentMethod     String?
+  rawPayload        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([razorpayPaymentId])
+  @@map("payments")
+}
+
+model InventoryLog {
+  id            String              @id @default(uuid())
+  productId     String
+  changeType    String              // RESTOCK, SALE, ADJUSTMENT, RETURN
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  referenceId   String?
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime            @default(now())
+
+  product       Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  adminUser     AdminUser?          @relation(fields: [createdBy], references: [id])
+
+  @@index([productId])
+  @@map("inventory_logs")
+}
+
+model Banner {
+  id          String    @id @default(uuid())
+  title       String
+  subtitle    String?
+  imageUrl    String
+  targetUrl   String?
+  buttonText  String?
+  position    Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([isActive, position])
+  @@map("banners")
+}
